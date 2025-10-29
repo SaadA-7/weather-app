@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from 'recharts'
 import './App.css'
 
 const API_KEY = import.meta.env.VITE_APP_API_KEY || "366b3c8510a4440999e38a626b7a0fbc"
@@ -102,6 +104,14 @@ function App() {
 
   const precipCount = weatherData.filter(city => city.precip > 0).length
 
+  // Prepare data for charts
+  const chartData = weatherData.map(city => ({
+    name: city.city_name,
+    temperature: city.temp,
+    humidity: city.rh,
+    windSpeed: city.wind_spd
+  }))
+
   // Search functionality
   const searchCities = (searchValue) => {
     setSearchInput(searchValue)
@@ -172,6 +182,41 @@ function App() {
         </div>
       </div>
 
+      <div className="charts-container">
+        <div className="chart-wrapper">
+          <h2>Temperature Across Cities</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="name" stroke="#94a3b8" angle={-45} textAnchor="end" height={100} />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
+              />
+              <Legend />
+              <Bar dataKey="temperature" fill="#3b82f6" name="Temperature (°F)" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="chart-wrapper">
+          <h2>Humidity & Wind Speed Trends</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+              <XAxis dataKey="name" stroke="#94a3b8" angle={-45} textAnchor="end" height={100} />
+              <YAxis stroke="#94a3b8" />
+              <Tooltip 
+                contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', color: '#e2e8f0' }}
+              />
+              <Legend />
+              <Line type="monotone" dataKey="humidity" stroke="#8b5cf6" name="Humidity (%)" strokeWidth={2} />
+              <Line type="monotone" dataKey="windSpeed" stroke="#10b981" name="Wind Speed (mph)" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       <div className="controls">
         <input
           type="text"
@@ -207,20 +252,26 @@ function App() {
         
         {filteredResults.length > 0 ? (
           filteredResults.map((city) => (
-            <div key={city.city_name} className="weather-row">
-              <span className="city-name">{city.city_name}, {city.state_code}</span>
-              <span className="temp">{city.temp}°F</span>
-              <span className="condition">
-                <img 
-                  src={`https://www.weatherbit.io/static/img/icons/${city.weather.icon}.png`}
-                  alt={city.weather.description}
-                  className="weather-icon"
-                />
-                {city.weather.description}
-              </span>
-              <span>{city.rh}%</span>
-              <span>{city.wind_spd.toFixed(1)} mph</span>
-            </div>
+            <Link 
+              to={`/cityDetails/${city.city_name}`} 
+              key={city.city_name} 
+              className="weather-row-link"
+            >
+              <div className="weather-row">
+                <span className="city-name">{city.city_name}, {city.state_code}</span>
+                <span className="temp">{city.temp}°F</span>
+                <span className="condition">
+                  <img 
+                    src={`https://www.weatherbit.io/static/img/icons/${city.weather.icon}.png`}
+                    alt={city.weather.description}
+                    className="weather-icon"
+                  />
+                  {city.weather.description}
+                </span>
+                <span>{city.rh}%</span>
+                <span>{city.wind_spd.toFixed(1)} mph</span>
+              </div>
+            </Link>
           ))
         ) : (
           <div className="no-results">No cities found matching your criteria</div>
